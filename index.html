@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Adjustment of Status Intake</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header class="header">
+    <h1>Adjustment of Status Intake</h1>
+    <p class="subheader">Information Collection Only • Attorney Review Required</p>
+  </header>
+
+  <section class="notice">
+    <strong>Legal Notice:</strong> This service collects general information only. It does <em>not</em> provide legal advice or create an attorney-client relationship. All data is reviewed by a licensed attorney.
+  </section>
+
+  <main>
+    <section class="chat-container" aria-live="polite" aria-label="Intake Chatbot Conversation">
+      <div id="chat" class="chat-window"></div>
+      <div id="controls" class="chat-controls" role="region" aria-label="Chat options"></div>
+    </section>
+
+    <section id="summarySection" class="summary hidden" aria-live="polite" aria-label="Intake Summary">
+      <h2>Internal Intake Summary</h2>
+      <small>For staff / attorney review only</small>
+      <pre id="summaryOutput"></pre>
+      <div class="export-buttons">
+        <button id="exportJsonBtn" type="button">Export JSON</button>
+        <button id="exportCsvBtn" type="button">Export CSV</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="adjustment_intake.js" defer></script>
+</body>
+</html>
+
+
