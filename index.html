@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Adjustment of Status Intake</title>
+  <title>Adjustment of Status Intake - Interactive</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -13,29 +13,152 @@
     <p class="subheader">Information Collection Only • Attorney Review Required</p>
   </header>
 
-  <section class="notice">
+  <section class="notice" role="alert">
     <strong>Legal Notice:</strong> This service collects general information only. It does <em>not</em> provide legal advice or create an attorney-client relationship. All data is reviewed by a licensed attorney.
   </section>
 
   <main>
     <section class="chat-container" aria-live="polite" aria-label="Intake Chatbot Conversation">
-      <div id="chat" class="chat-window"></div>
+      <div id="chat" class="chat-window" role="log" aria-live="polite" aria-relevant="additions"></div>
       <div id="controls" class="chat-controls" role="region" aria-label="Chat options"></div>
     </section>
 
-    <section id="summarySection" class="summary hidden" aria-live="polite" aria-label="Intake Summary">
+    <section id="summary" class="summary" aria-live="polite" aria-label="Intake Summary">
       <h2>Internal Intake Summary</h2>
       <small>For staff / attorney review only</small>
       <pre id="summaryOutput"></pre>
-      <div class="export-buttons">
-        <button id="exportJsonBtn" type="button">Export JSON</button>
-        <button id="exportCsvBtn" type="button">Export CSV</button>
-      </div>
     </section>
   </main>
 
-  <script src="adjustment_intake.js" defer></script>
+  <script>
+    const chat = document.getElementById("chat");
+    const controls = document.getElementById("controls");
+    const summarySection = document.getElementById("summary");
+    const summaryOutput = document.getElementById("summaryOutput");
+
+    const intake = {
+      currentStatus: null,
+      entryDate: null,
+      criminalHistory: null,
+      documentsAvailable: []
+    };
+
+    function bot(text) {
+      const msg = document.createElement("div");
+      msg.className = "msg bot";
+      msg.textContent = text;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function user(text) {
+      const msg = document.createElement("div");
+      msg.className = "msg user";
+      msg.textContent = text;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function clearControls() {
+      controls.innerHTML = "";
+    }
+
+    function createButton(label, onClick) {
+      const btn = document.createElement("button");
+      btn.textContent = label;
+      btn.type = "button";
+      btn.onclick = onClick;
+      controls.appendChild(btn);
+      return btn;
+    }
+
+    function start() {
+      chat.innerHTML = "";
+      clearControls();
+      summarySection.classList.remove("visible");
+      Object.keys(intake).forEach(k => intake[k] = (Array.isArray(intake[k]) ? [] : null));
+
+      bot("Welcome! Let's start your Adjustment of Status intake.");
+      setTimeout(askCurrentStatus, 700);
+    }
+
+    function askCurrentStatus() {
+      bot("What is your current immigration status?");
+      clearControls();
+      ["Entered without inspection", "Valid Visa", "Other"].forEach(status => {
+        createButton(status, () => {
+          user(status);
+          intake.currentStatus = status;
+          clearControls();
+          setTimeout(askEntryDate, 500);
+        });
+      });
+    }
+
+    function askEntryDate() {
+      bot("When did you last enter the U.S.?");
+      clearControls();
+      ["Less than 1 year ago", "1 to 5 years ago", "More than 5 years ago"].forEach(date => {
+        createButton(date, () => {
+          user(date);
+          intake.entryDate = date;
+          clearControls();
+          setTimeout(askCriminalHistory, 500);
+        });
+      });
+    }
+
+    function askCriminalHistory() {
+      bot("Do you have any criminal history?");
+      clearControls();
+      ["Yes", "No"].forEach(answer => {
+        createButton(answer, () => {
+          user(answer);
+          intake.criminalHistory = (answer === "Yes");
+          clearControls();
+          setTimeout(askDocuments, 500);
+        });
+      });
+    }
+
+    function askDocuments() {
+      bot("Which documents do you have? Select all that apply, then click Continue.");
+      clearControls();
+
+      const docs = ["Passport", "I-94", "Work Authorization"];
+      const selectedDocs = new Set();
+
+      docs.forEach(doc => {
+        const btn = createButton(doc, () => {
+          if (selectedDocs.has(doc)) {
+            selectedDocs.delete(doc);
+            btn.classList.remove("selected");
+          } else {
+            selectedDocs.add(doc);
+            btn.classList.add("selected");
+          }
+        });
+      });
+
+      const contBtn = createButton("Continue", () => {
+        intake.documentsAvailable = Array.from(selectedDocs);
+        user(intake.documentsAvailable.length > 0 ? intake.documentsAvailable.join(", ") : "No documents");
+        clearControls();
+        setTimeout(finalize, 500);
+      });
+    }
+
+    function finalize() {
+      bot("Thank you. Your information has been recorded.");
+
+      summaryOutput.textContent = JSON.stringify(intake, null, 2);
+      summarySection.classList.add("visible");
+      summarySection.scrollIntoView({ behavior: "smooth" });
+    }
+
+    document.addEventListener("DOMContentLoaded", start);
+  </script>
+
 </body>
 </html>
-
 
